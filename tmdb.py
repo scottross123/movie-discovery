@@ -8,8 +8,6 @@ from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())  # This is to load your API keys from .env
 
-movie_id = "585245"
-
 TMDB_KEY = os.getenv("TMDB_KEY")
 TMDB_URL = "https://api.themoviedb.org/3/movie/"
 MW_URL = "https://en.wikipedia.org/w/rest.php/v1/search/page"
@@ -43,14 +41,9 @@ def get_movie_image(id):
 
 def search_wiki(query):
     url = MW_URL
-    r = requests.get(url, params={"q": query, "limit": 10})
+    r = requests.get(url, params={"q": query + " (film)", "limit": 10})
     
     r_json = r.json()
 
-    return "https://en.wikipedia.org/?curid=" + str(r_json["pages"][5]["id"])
+    return "https://en.wikipedia.org/?curid=" + str(r_json["pages"][0]["id"])
 
-movie = get_movie(movie_id)
-
-print(get_movie(movie_id))
-print(get_movie_image(movie_id))
-print(search_wiki(movie[0]))
