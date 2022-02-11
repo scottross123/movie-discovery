@@ -1,14 +1,18 @@
 <html>
-    <head></head>
+    <head>
+        <link rel="stylesheet" href="/static/style.css">
+    </head>
     <body>
 
-        <img src={{poster}}>
+        <div id="movie">
+            <img src={{poster}}>
 
-        <ul>
-            <li>{{title}}</li>
-            <li>{{tagline}}</li>
-            <li>{{genres}}</li>
-            <li><a href={{url}}>URL!</a></li>
-        </ul>
+            <ul>
+                <li><b>{{title}}</b></li>
+                <li><i>{{tagline}}</i></li>
+                <li>{{genres}}</li>
+                <li><a href={{url}}>Wikipedia link!</a></li>
+            </ul>
+        </div>
     </body>
 </html>
