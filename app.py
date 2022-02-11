@@ -1,6 +1,7 @@
 import random
 import flask
 import tmdb
+import os
 
 app = flask.Flask(__name__)
 
@@ -23,4 +24,8 @@ def index():
         url=url
     )
     
-app.run(debug=True)
+app.run(
+    host='0.0.0.0',
+    port=int(os.getenv('PORT', 8080)),
+    debug=True
+)
