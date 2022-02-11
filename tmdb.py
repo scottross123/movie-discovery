@@ -1,5 +1,5 @@
 """
-Contains functions that interact witht TMDB API
+Contains functions that interact witht TMDB and wikimedia API
 """
 
 import requests
@@ -10,14 +10,15 @@ load_dotenv(find_dotenv())  # This is to load your API keys from .env
 
 movie_id = "585245"
 
-KEY = os.getenv("KEY")
-BASE_URL = "https://api.themoviedb.org/3/movie/"
+TMDB_KEY = os.getenv("TMDB_KEY")
+TMDB_URL = "https://api.themoviedb.org/3/movie/"
+MW_URL = "https://en.wikipedia.org/w/rest.php/v1/search/page"
 
 def get_movie(id):
-    url = BASE_URL + id
+    url = TMDB_URL + id
 
     # create request
-    r = requests.get(url, params={"api_key": KEY})
+    r = requests.get(url, params={"api_key": TMDB_KEY})
 
     # convert request to json
     r_json = r.json()
@@ -26,10 +27,10 @@ def get_movie(id):
     return desc
 
 def get_movie_image(id):
-    url = BASE_URL + id + "/images"
+    url = TMDB_URL + id + "/images"
 
     # create request
-    r = requests.get(url, params={"api_key": KEY})
+    r = requests.get(url, params={"api_key": TMDB_KEY})
 
     # convert request to json
     r_json = r.json()
@@ -40,5 +41,16 @@ def get_movie_image(id):
     
     return image
 
+def search_wiki(query):
+    url = MW_URL
+    r = requests.get(url, params={"q": query, "limit": 10})
+    
+    r_json = r.json()
+
+    return "https://en.wikipedia.org/?curid=" + str(r_json["pages"][5]["id"])
+
+movie = get_movie(movie_id)
+
 print(get_movie(movie_id))
 print(get_movie_image(movie_id))
+print(search_wiki(movie[0]))
