@@ -1,13 +1,34 @@
-import random
-import flask
-import tmdb
 import os
+from dotenv import load_dotenv
+from flask import Flask
+import flask
+from flask_sqlalchemy import SQLAlchemy
+from dotenv import find_dotenv, load_dotenv
+import random
+import tmdb
+load_dotenv(find_dotenv())
 
 app = flask.Flask(__name__)
 
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('URL')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+
+class Users(db.Model):
+    username = db.Column(db.String(30), primary_key=True, nullable=False)
+
+class Ratings(db.Model):
+    id = db.Column(db.Integer, primary_key=True, nullable=False)
+    username = db.Column(db.String(30), nullable=False)
+    movie_id = db.Column(db.String(30), nullable=False)
+    rating = db.Column(db.Integer, nullable=False)
+    content = db.Column(db.String(2000))
+
+db.create_all()
+
 # movie ids for Dune, Encanto, and Spider-Man: No Way Home
 movies = ["438631", "568124", "634649"]
-
 
 @app.route("/")
 def index():
