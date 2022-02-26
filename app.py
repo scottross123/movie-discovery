@@ -34,11 +34,23 @@ db.create_all()
 
 # movie ids for Dune, Encanto, and Spider-Man: No Way Home
 movies = ["438631", "568124", "634649"]
+choice = random.choice(movies)
 
+def random_id():
+    min = 100
+    max = 1000000000
+
+    while Ratings.query.filter(id == rand).limit(1).first() is not None:
+        rand = random.randint(min, max)
+
+    return rand
 
 @app.route("/")
+def home():
+    return flask.render_template("login.html")
+
+@app.route("/index")
 def index():
-    choice = random.choice(movies)
 
     # error handling if something goes wrong with the apis
     try:
@@ -73,12 +85,14 @@ def login():
         print(username)
         query = Users.query.filter(Users.username == username).first()
         print(query)
+        flask.session.pop('_flashes', None)
         if query == None:
             print("user invalid")
-            flask.flash("WRONG!")
-            return flask.redirect(flask.url_for("login"))
+            flask.flash("WRONG! User invalid!")
+            return flask.render_template("login.html")
         else:
             print("user verified")
+            flask.session["username"] = username
             return flask.redirect(flask.url_for("index"))
 
     return flask.render_template("login.html")
@@ -91,8 +105,8 @@ def signup():
         print(username)
         query = Users.query.filter(Users.username == username).first()
         print(query)
+        flask.session.pop('_flashes', None)
         if query == None:
-            flask.flash("New user created! Redirecting to login page...")
             print("user not in db, add user to db")
             db.session.add(Users(username = username))
             db.session.commit()
@@ -104,17 +118,21 @@ def signup():
 
     return flask.render_template("signup.html")
 
+@app.route("/logout")
+def logout():
+    flask.session.pop("username", default=None)
+    return flask.redirect(flask.url_for("login"))
 
 @app.route("/save", methods=["POST", "GET"])
-def form_handler():
+def add_comment():
     if flask.request.method == "POST":
         data = flask.request.form
         new_comment = Ratings(
-            id = 
-            username = logged_in
-            movie_id = move_id
-            rating = rating
-            content = content           
+            id = random_id(),
+            username = flask.session["username"], # user currently logged in
+            movie_id = choice, # movie id
+            rating = data["rating"],
+            content = data["content"]           
         )
     return flask.redirect("/")
 

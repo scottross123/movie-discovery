@@ -22,3 +22,7 @@ ul {
     margin-right: auto;
 }
 
+#flashes {
+    font-size: 20px;
+    color: red;
+}
