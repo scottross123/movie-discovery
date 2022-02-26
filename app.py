@@ -71,9 +71,9 @@ def login():
     if flask.request.method == "POST":
         username = flask.request.form["username"]
         print(username)
-        logged_in = Users.query.filter(Users.username == username).first()
-        print(logged_in)
-        if logged_in == None:
+        query = Users.query.filter(Users.username == username).first()
+        print(query)
+        if query == None:
             print("user invalid")
             flask.flash("WRONG!")
             return flask.redirect(flask.url_for("login"))
@@ -105,9 +105,17 @@ def signup():
     return flask.render_template("signup.html")
 
 
-@app.route("/save", methods=["POST"])
+@app.route("/save", methods=["POST", "GET"])
 def form_handler():
-
+    if flask.request.method == "POST":
+        data = flask.request.form
+        new_comment = Ratings(
+            id = 
+            username = logged_in
+            movie_id = move_id
+            rating = rating
+            content = content           
+        )
     return flask.redirect("/")
 
 

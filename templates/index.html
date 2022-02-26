@@ -5,7 +5,10 @@
     </head>
     <body>
 
-        <img src="/static/tmdb.png">        
+        <div id="header">
+            <h1>Discover new movies!!!</h1>
+            <img src="/static/tmdb.png">
+        </div>        
 
         <div id="movie">
             <img src={{poster}}>
@@ -16,6 +19,30 @@
                 <li>{{genres}}</li>
                 <li><a href={{url}}>Wikipedia link!</a></li>
             </ul>
+        </div>
+
+        <div id="comments">
+            <div id="add_comments">
+                <form action="/save" method="POST">
+                    <label for="rating">A solid</label>
+                    <select>
+                        <option value=1>1</option>
+                        <option value=2>2</option>
+                        <option value=3>3</option>
+                        <option value=4>4</option>
+                        <option value=5>5</option>
+                    </select>
+                    <label for="rating">/5!</label><br>
+                    
+                    <textarea name ="content" placeholder="Leave a comment on what you thought about this movie!" rows="10" cols="50"></textarea>
+
+                    <input type="submit" name="add" value="Submit!">
+                </form>
+            </div>
+
+            <div id="comment_list">
+
+            </div>
         </div>
     </body>
 </html>
