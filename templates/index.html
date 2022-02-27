@@ -50,7 +50,13 @@
             </div>
 
             <div id="comment_list">
-
+                {% for comment in comments%}
+                    <div class="comment">
+                        <h6>{{comment.username}}</h6>
+                        <p>{{comment.rating}}/5</p>
+                        <p>{{comment.content}}</p>
+                    </div>
+                {% endfor %}
             </div>
         </div>
     </body>

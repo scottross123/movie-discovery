@@ -39,6 +39,7 @@ choice = random.choice(movies)
 def random_id():
     min = 100
     max = 1000000000
+    rand = random.randint(min, max)
 
     while Ratings.query.filter(id == rand).limit(1).first() is not None:
         rand = random.randint(min, max)
@@ -68,6 +69,10 @@ def index():
     except:
         url = "https://en.wikipedia.org/wiki/Lists_of_films"
 
+    # list comments
+    comments = Ratings.query.filter(Ratings.movie_id == choice).all()
+    print(comments)
+
     return flask.render_template(
         "index.html",
         title=movie[0],
@@ -75,6 +80,7 @@ def index():
         genres=", ".join(movie[2]),
         poster=poster,
         url=url,
+        comments=comments
     )
 
 
@@ -134,7 +140,9 @@ def add_comment():
             rating = data["rating"],
             content = data["content"]           
         )
-    return flask.redirect("/")
+        db.session.add(new_comment)
+        db.session.commit()
+    return flask.redirect(flask.url_for("index"))
 
 
 # app is calm-atoll-21963 on heroku
