@@ -6,10 +6,14 @@ from flask_sqlalchemy import SQLAlchemy
 from dotenv import find_dotenv, load_dotenv
 import random
 import tmdb
+import flask_login as fl
 
 load_dotenv(find_dotenv())
 
 app = flask.Flask(__name__)
+
+login_manager = fl.LoginManager()
+login_manager.init_app(app)
 
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -18,15 +22,16 @@ db = SQLAlchemy(app)
 
 app.secret_key = os.getenv("SECRET_KEY")
 
-class Users(db.Model):
-    username = db.Column(db.String(30), primary_key=True, nullable=False)
+class User(fl.UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(30), unique=True)
 
 
-class Ratings(db.Model):
-    id = db.Column(db.Integer, primary_key=True, nullable=False)
-    username = db.Column(db.String(30), nullable=False)
-    movie_id = db.Column(db.String(30), nullable=False)
-    rating = db.Column(db.Integer, nullable=False)
+class Rating(db.Model):
+    rating_id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(30))
+    movie_id = db.Column(db.String(30))
+    rating = db.Column(db.Integer)
     content = db.Column(db.String(2000))
 
 
@@ -41,10 +46,15 @@ def random_id():
     max = 1000000000
     rand = random.randint(min, max)
 
-    while Ratings.query.filter(id == rand).limit(1).first() is not None:
+    while Rating.query.filter(Rating.rating_id == rand).limit(1).first() and User.query.filter(User.id == rand).limit(1).first() is not None:
         rand = random.randint(min, max)
 
+
     return rand
+
+@login_manager.user_loader
+def load_user(id):
+    return User.query.get(int(id))
 
 @app.route("/")
 def home():
@@ -70,11 +80,12 @@ def index():
         url = "https://en.wikipedia.org/wiki/Lists_of_films"
 
     # list comments
-    comments = Ratings.query.filter(Ratings.movie_id == choice).all()
+    comments = Rating.query.filter(Rating.movie_id == choice).all()
     print(comments)
 
     return flask.render_template(
         "index.html",
+        current_user=fl.current_user.username,
         title=movie[0],
         tagline=movie[1],
         genres=", ".join(movie[2]),
@@ -89,16 +100,15 @@ def login():
     if flask.request.method == "POST":
         username = flask.request.form["username"]
         print(username)
-        query = Users.query.filter(Users.username == username).first()
-        print(query)
+        user = User.query.filter_by(username=username).first()
+        print(user)
         flask.session.pop('_flashes', None)
-        if query == None:
+        if user == None:
             print("user invalid")
             flask.flash("WRONG! User invalid!")
-            return flask.render_template("login.html")
         else:
             print("user verified")
-            flask.session["username"] = username
+            fl.login_user(user)
             return flask.redirect(flask.url_for("index"))
 
     return flask.render_template("login.html")
@@ -109,12 +119,15 @@ def signup():
     if flask.request.method == "POST":
         username = flask.request.form["username"]
         print(username)
-        query = Users.query.filter(Users.username == username).first()
+        query = User.query.filter(User.username == username).first()
         print(query)
         flask.session.pop('_flashes', None)
         if query == None:
             print("user not in db, add user to db")
-            db.session.add(Users(username = username))
+            new_user = User(
+                id = random_id(),
+                username = username) 
+            db.session.add(new_user)
             db.session.commit()
             return flask.redirect(flask.url_for("login"))
         else:
@@ -126,15 +139,15 @@ def signup():
 
 @app.route("/logout")
 def logout():
-    flask.session.pop("username", default=None)
+    fl.logout_user()
     return flask.redirect(flask.url_for("login"))
 
 @app.route("/save", methods=["POST", "GET"])
 def add_comment():
     if flask.request.method == "POST":
         data = flask.request.form
-        new_comment = Ratings(
-            id = random_id(),
+        new_comment = Rating(
+            rating_id = random_id(),
             username = flask.session["username"], # user currently logged in
             movie_id = choice, # movie id
             rating = data["rating"],
