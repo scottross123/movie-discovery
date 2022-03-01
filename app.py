@@ -1,60 +1,28 @@
 import os
 from dotenv import load_dotenv
-from flask import Flask
 import flask
-from flask_sqlalchemy import SQLAlchemy
 from dotenv import find_dotenv, load_dotenv
-import random
-import tmdb
-import flask_login as fl
+from flask_login import current_user, login_user, logout_user
+from tmdb import get_movie, get_movie_image, search_wiki, pick_random_movie
+from models import User, Rating, db, random_id
+from auth import login
 
 load_dotenv(find_dotenv())
 
 app = flask.Flask(__name__)
 
-login_manager = fl.LoginManager()
-login_manager.init_app(app)
+login.init_app(app)
+db.init_app(app)
 
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
-db = SQLAlchemy(app)
-
 app.secret_key = os.getenv("SECRET_KEY")
 
-class User(fl.UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(30), unique=True)
+choice = pick_random_movie()
 
-
-class Rating(db.Model):
-    rating_id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(30))
-    movie_id = db.Column(db.String(30))
-    rating = db.Column(db.Integer)
-    content = db.Column(db.String(2000))
-
-
-db.create_all()
-
-# movie ids for Dune, Encanto, and Spider-Man: No Way Home
-movies = ["438631", "568124", "634649"]
-choice = random.choice(movies)
-
-def random_id():
-    min = 100
-    max = 1000000000
-    rand = random.randint(min, max)
-
-    while Rating.query.filter(Rating.rating_id == rand).limit(1).first() and User.query.filter(User.id == rand).limit(1).first() is not None:
-        rand = random.randint(min, max)
-
-
-    return rand
-
-@login_manager.user_loader
-def load_user(id):
-    return User.query.get(int(id))
+@app.before_first_request
+def create_all():
+    db.create_all()
 
 @app.route("/")
 def home():
@@ -65,17 +33,17 @@ def index():
 
     # error handling if something goes wrong with the apis
     try:
-        movie = tmdb.get_movie(choice)
+        movie = get_movie(choice)
     except:
         move = "Uh-oh, something went wrong, movie info can't be found"
 
     try:
-        poster = tmdb.get_movie_image(choice)
+        poster = get_movie_image(choice)
     except:
         poster = "/static/notfound.jpg"
 
     try:
-        url = tmdb.search_wiki(movie[0])
+        url = search_wiki(movie[0])
     except:
         url = "https://en.wikipedia.org/wiki/Lists_of_films"
 
@@ -85,7 +53,7 @@ def index():
 
     return flask.render_template(
         "index.html",
-        current_user=fl.current_user.username,
+        current_user=current_user.username,
         title=movie[0],
         tagline=movie[1],
         genres=", ".join(movie[2]),
@@ -93,7 +61,6 @@ def index():
         url=url,
         comments=comments
     )
-
 
 @app.route("/login", methods=["POST", "GET"])
 def login():
@@ -108,11 +75,10 @@ def login():
             flask.flash("WRONG! User invalid!")
         else:
             print("user verified")
-            fl.login_user(user)
+            login_user(user)
             return flask.redirect(flask.url_for("index"))
 
     return flask.render_template("login.html")
-
 
 @app.route("/signup", methods=["POST", "GET"])
 def signup():
@@ -139,7 +105,7 @@ def signup():
 
 @app.route("/logout")
 def logout():
-    fl.logout_user()
+    logout_user()
     return flask.redirect(flask.url_for("login"))
 
 @app.route("/save", methods=["POST", "GET"])
@@ -156,7 +122,6 @@ def add_comment():
         db.session.add(new_comment)
         db.session.commit()
     return flask.redirect(flask.url_for("index"))
-
 
 # app is calm-atoll-21963 on heroku
 app.run(host="0.0.0.0", port=int(os.getenv("PORT", 8080)), debug=True)

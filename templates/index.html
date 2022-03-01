@@ -8,10 +8,11 @@
         <div id="header">
             <h1>Discover new movies!!! Welcome {{current_user}}!</h1>
             <img src="/static/tmdb.png">
+            <button id="logout">Logout here!!</button>
         </div>   
         
         <div>
-            <button id="logout">Logout here!!</button>
+
             <script>
                 document.getElementById("logout").onclick = function () {
                     location.href="logout";
@@ -29,7 +30,7 @@
                 <li><a href={{url}}>Wikipedia link!</a></li>
             </ul>
         </div>
-
+        <br>
         <div id="comments">
             <div id="add_comments">
                 <form action="/save" method="POST">
@@ -48,7 +49,7 @@
                     <input type="submit" name="add" value="Submit!">
                 </form>
             </div>
-
+            <br>
             <div id="comment_list">
                 {% for comment in comments%}
                     <div class="comment">

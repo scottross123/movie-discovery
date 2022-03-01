@@ -2,6 +2,7 @@
 Contains functions that interact witht TMDB and wikimedia API
 """
 
+import random
 import requests
 import os
 from dotenv import load_dotenv, find_dotenv
@@ -49,4 +50,10 @@ def search_wiki(query):
     r_json = r.json()
     # return wikipedia url at the found id
     return "https://en.wikipedia.org/?curid=" + str(r_json["pages"][0]["id"])
+
+def pick_random_movie():
+    # movie ids for Dune, Encanto, and Spider-Man: No Way Home
+    movies = ["438631", "568124", "634649"]
+    return random.choice(movies)
+
 
