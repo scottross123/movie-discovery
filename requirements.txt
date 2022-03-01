@@ -3,4 +3,4 @@ requests
 python-dotenv
 flask-login
 flask_sqlalchemy
-psycopg
+psycopg2
