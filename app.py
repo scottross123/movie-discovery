@@ -114,7 +114,7 @@ def add_comment():
         data = flask.request.form
         new_comment = Rating(
             rating_id = random_id(),
-            username = current_user, # user currently logged in
+            username = current_user.username, # user currently logged in
             movie_id = choice, # movie id
             rating = data["rating"],
             content = data["content"]           
