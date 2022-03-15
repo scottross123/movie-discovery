@@ -11,6 +11,12 @@ load_dotenv(find_dotenv())
 
 app = flask.Flask(__name__)
 
+bp = flask.Blueprint(
+    "bp",
+    __name__,
+    template_folder="./static/react",
+)
+
 login.init_app(app)
 db.init_app(app)
 
@@ -28,7 +34,7 @@ def create_all():
 def home():
     return flask.render_template("login.html")
 
-@app.route("/index")
+@bp.route("/index")
 def index():
 
     # error handling if something goes wrong with the apis
@@ -122,6 +128,8 @@ def add_comment():
         db.session.add(new_comment)
         db.session.commit()
     return flask.redirect(flask.url_for("index"))
+
+app.register_blueprint(bp)
 
 # app is calm-atoll-21963 on heroku
 app.run(host="0.0.0.0", port=int(os.getenv("PORT", 8080)), debug=True)
