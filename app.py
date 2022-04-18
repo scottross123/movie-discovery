@@ -11,12 +11,6 @@ load_dotenv(find_dotenv())
 
 app = flask.Flask(__name__)
 
-bp = flask.Blueprint(
-    "bp",
-    __name__,
-    template_folder="./static/react",
-)
-
 login.init_app(app)
 db.init_app(app)
 
@@ -26,6 +20,16 @@ app.secret_key = os.getenv("SECRET_KEY")
 
 choice = pick_random_movie()
 
+bp = flask.Blueprint(
+    "bp",
+    __name__,
+    template_folder="./static/react",
+)
+
+@bp.route("/new_page")
+def new_page():
+    return flask.render_template("index.html")
+
 @app.before_first_request
 def create_all():
     db.create_all()
@@ -34,7 +38,7 @@ def create_all():
 def home():
     return flask.render_template("login.html")
 
-@bp.route("/index")
+@app.route("/index")
 def index():
 
     # error handling if something goes wrong with the apis
@@ -129,7 +133,50 @@ def add_comment():
         db.session.commit()
     return flask.redirect(flask.url_for("index"))
 
+@app.route("/save_edits", methods=["POST", "GET"])
+def edit_comment():
+    if flask.request.method == "POST":
+        user_ratings = Rating.query.filter_by().all()
+        data = flask.request.form
+        new_comments = [Rating(
+            rating_id = random_id(),
+            username = current_user.username, # user currently logged in
+            movie_id = choice, # movie id
+            rating = data["rating"],
+            content = data["content"]           
+        )
+        for comment in data]
+
+    # delete old ratings
+    for rating in user_ratings:
+        db.session.delete(rating)
+
+    # add new ratings
+    for rating in new_comments:
+        db.session.add(rating)
+    
+    db.session.commit()
+
+    return flask.jsonify("New ratings saved!!")
+
+@app.route("/get_reviews")
+def foo():
+    ratings = Rating.query.filter().all()
+    print(ratings)
+    return flask.jsonify(
+        [
+            {
+                "username": rating.username,
+                "movie_id": rating.movie_id,
+                "rating": rating.rating,
+                "content": rating.content
+            }
+            for rating in ratings
+        ]
+    )
+
+
 app.register_blueprint(bp)
 
 # app is calm-atoll-21963 on heroku
-app.run(host="0.0.0.0", port=int(os.getenv("PORT", 8080)), debug=True)
+app.run(port=5000, debug=True)
